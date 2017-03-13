@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_landing"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="mx.dagus.dagus.LandingActivity"
+    tools:ignore="MissingConstraints">
+
+    <ImageView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:srcCompat="@drawable/inicio"
+        android:id="@+id/landing_fondo"
+        android:adjustViewBounds="false"
+        android:cropToPadding="false"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:contentDescription="@string/fondo"
+        android:scaleType="centerCrop"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <ImageView
+        android:layout_width="218dp"
+        android:layout_height="166dp"
+        app:srcCompat="@drawable/logodaguspro"
+        android:id="@+id/landing_logo"
+        app:layout_constraintRight_toRightOf="@+id/landing_fondo"
+        app:layout_constraintTop_toTopOf="@+id/landing_fondo"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:contentDescription="@string/logo" />
+
+    <LinearLayout
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        tools:layout_editor_absoluteY="0dp"
+        tools:layout_editor_absoluteX="0dp" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        app:layout_constraintRight_toRightOf="@+id/landing_fondo"
+        android:layout_marginEnd="16dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="@+id/landing_fondo"
+        app:layout_constraintTop_toBottomOf="@+id/landing_logo"
+        android:layout_marginStart="16dp"
+        android:layout_width="wrap_content"
+        android:id="@+id/linearLayout"
+        android:layout_marginTop="16dp">
+
+        <ImageView
+            android:layout_width="42dp"
+            app:srcCompat="@drawable/lupa"
+            android:id="@+id/landing_lupa"
+            android:contentDescription="@string/lupa"
+            android:layout_height="30dp" />
+
+        <AutoCompleteTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/landing_buscador"
+            android:layout_weight="1"
+            android:imeOptions="actionSearch"
+            android:hint="@string/que_estudiar"
+            style="@style/Widget.AppCompat.AutoCompleteTextView" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginRight="8dp"
+        android:onClick="inicio"
+        android:text="Button"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
+
+</android.support.constraint.ConstraintLayout>

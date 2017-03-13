@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">DAGUS</string>
+    <string name="que_estudiar">¿QUÉ VAS A ESTUDIAR HOY?</string>
+    <string name="logo">logo</string>
+    <string name="fondo">fondo</string>
+    <string name="lupa">lupa</string>
+    <string name="mate">MATEMÁTICAS</string>
+    <string name="siguiente">Siguiente</string>
+    <string name="materias">Materias</string>
+    <string name="grados">Grados</string>
+    <string name="revisa">Revisa tu conexión a Internet</string>
+    <string name="facebook_app_id">262205514153715</string>
+    <string name="fb_login_protocol_scheme">fb262205514153715</string>
+    <string-array name="materias_array">
+        <item>Matemáticas</item>
+        <item>Español</item>
+        <item>Cálculo</item>
+        <item>Geografía</item>
+        <item>Historia</item>
+        <item>Biología</item>
+        <item>Física</item>
+        <item>Química</item>
+        <item>MATEMÁTICAS</item>
+    </string-array>
+</resources>
