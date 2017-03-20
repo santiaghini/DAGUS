@@ -6,4 +6,24 @@
     <color name="dagusPurple">#453B73</color>
     <color name="dagusAzul">#303760</color>
     <color name="titulo_contenido">#F2ED36</color>
+    <color name="fondogris">#262626</color>
+    <color name="fondogrisclaro">#868686</color>
+    <color name="fondogriss">#505050</color>
+    <color name="white">#ffffff</color>
+    <color name="almostwhite">#fafafa</color>
+    <color name="whiteTrans">#b8fafafa</color>
+    <color name="pressedWhiteButton">#cfcfcf</color>
+    <color name="cerrarsesion">#263238</color>
+    <color name="dagusVerde">#29f7a1</color>
+    <color name="dagusVerdeboton">#29e892</color>
+    <color name="green_temp">#23A96E</color>
+    <color name="green_dark">#159204</color>
+    <color name="bright_green">#02D8B0</color>
+    <color name="button_green">#10a54a</color>
+    <color name="almostTransVerde">#5029e892</color>
+    <color name="almostTransAzul">#a200736b</color>
+    <color name="filtroAzul">#4a00736b</color>
+    <color name="pressedGreenButton">#23bf79</color>
+    <color name="pressedOlvido">#151515</color>
+    
 </resources>

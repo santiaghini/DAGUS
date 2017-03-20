@@ -3,10 +3,13 @@ package mx.dagus.dagus;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -57,6 +60,7 @@ public class LandingActivity extends AppCompatActivity {
     ContenidoAdapter contenidoAdapter;
     ArrayList<String> nombres;
     boolean tablet;
+    Typeface gothamlight;
 
 
     @Override
@@ -77,6 +81,17 @@ public class LandingActivity extends AppCompatActivity {
         buscador = (AutoCompleteTextView) findViewById(R.id.landing_buscador);
         gothambold = Typeface.createFromAsset(getAssets(), "fonts/gotham_bold.ttf");
         buscador.setTypeface(gothambold);
+        buscador.setTextColor(getResources().getColor(R.color.white));
+        buscador.setHintTextColor(getResources().getColor(R.color.whiteTrans));
+        Drawable background = buscador.getBackground();
+        background.mutate().setColorFilter(ContextCompat.getColor(getApplicationContext(),R.color.white), PorterDuff.Mode.SRC_ATOP);
+        buscador.setBackground(background);
+
+        gothamlight = Typeface.createFromAsset(getAssets() , "fonts/gotham_light.ttf");
+        TextView cerrartext = (TextView) findViewById(R.id.landing_cerrarsesion);
+        cerrartext.setTypeface(gothamlight);
+        cerrartext.setTextColor(getResources().getColor(R.color.cerrarsesion));
+
         elementos = new ArrayList<Resultado>();
         tablet = getResources().getBoolean(R.bool.tablet);
         if (tablet == true) {
@@ -278,6 +293,28 @@ public class LandingActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences preferences = getApplicationContext().getSharedPreferences("Dagus" , Context.MODE_PRIVATE);
+        String token = preferences.getString("token", null);
+
+        if (token == null) {
+            Intent intent1 = new Intent(LandingActivity.this , InicioActivity.class);
+            startActivity(intent1);
+        } else {
+            Log.d("token" , token);
+        }
+    }
+
+    public void cerrarSesion(View view) {
+        SharedPreferences preferences = getApplicationContext().getSharedPreferences("Dagus", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.remove("token");
+        editor.apply();
+        Intent intent = new Intent(LandingActivity.this, InicioActivity.class);
+        startActivity(intent);
+    }
 }
 
 class Resultado {

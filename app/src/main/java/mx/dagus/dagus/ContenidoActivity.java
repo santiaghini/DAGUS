@@ -71,7 +71,7 @@ public class ContenidoActivity extends AppCompatActivity {
             titu.setText("MATERIAS DE " + nombre + "_");
         }
         titu.setTypeface(gothambold);
-        titu.setTextColor(getResources().getColor(R.color.titulo_contenido));
+        titu.setTextColor(getResources().getColor(R.color.white));
         tablet = getResources().getBoolean(R.bool.tablet);
         if (tablet == true) {
             titu.setTextSize(52);
@@ -98,7 +98,7 @@ public class ContenidoActivity extends AppCompatActivity {
                     try {
                         JSONArray materias = response.getJSONArray("materias");
                         if (materias.length() == 0) {
-                            Toast nomaterias = Toast.makeText(getApplicationContext() , "No hay materias disponibles" , Toast.LENGTH_LONG);
+                            Toast nomaterias = Toast.makeText(getApplicationContext() , getString(R.string.nohaymaterias) , Toast.LENGTH_LONG);
                             nomaterias.show();
                         } else {
                             contenidoAdapter.clear();
@@ -144,7 +144,7 @@ public class ContenidoActivity extends AppCompatActivity {
                     try {
                         JSONArray guias = response.getJSONArray("guias");
                         if (guias.length() == 0) {
-                            Toast noguias = Toast.makeText(getApplicationContext() , "No hay guías disponibles" , Toast.LENGTH_LONG);
+                            Toast noguias = Toast.makeText(getApplicationContext() , getString(R.string.nohayguias) , Toast.LENGTH_LONG);
                             noguias.show();
                         } else {
                             contenidoAdapter.clear();
@@ -181,7 +181,7 @@ public class ContenidoActivity extends AppCompatActivity {
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
-                        Toast noguias = Toast.makeText(getApplicationContext() , "No hay guías disponibles" , Toast.LENGTH_LONG);
+                        Toast noguias = Toast.makeText(getApplicationContext() , getString(R.string.nohayguias) , Toast.LENGTH_LONG);
                         noguias.show();
                     }
                 }
