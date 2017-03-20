@@ -91,14 +91,21 @@ public class LandingActivity extends AppCompatActivity {
 
         ImageView userpicture = (ImageView)  findViewById(R.id.landing_profilepicture);
 
-        String userID = AccessToken.getCurrentAccessToken().getUserId();
+        try {
+            String userID = AccessToken.getCurrentAccessToken().getUserId();
 
-        if (userID!=null){
-            Picasso.with(getApplicationContext())
-                    .load("https://graph.facebook.com/" + userID + "/picture?type=large")
-                    .into(userpicture);
-        } else {
-            userpicture.setVisibility(View.INVISIBLE);
+            Log.d("userid", userID);
+
+            if (userID != null) {
+                Picasso.with(getApplicationContext())
+                        .load("https://graph.facebook.com/" + userID + "/picture?type=large")
+                        .into(userpicture);
+            } else {
+                userpicture.setVisibility(View.INVISIBLE);
+            }
+
+        } catch (NullPointerException n){
+            Log.d("nullpointexception" , n.toString());
         }
 
         buscador = (AutoCompleteTextView) findViewById(R.id.landing_buscador);
