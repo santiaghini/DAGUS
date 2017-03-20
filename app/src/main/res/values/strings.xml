@@ -26,7 +26,8 @@
     <string name="loginincorrecto">Tu e-mail o contraseña son incorrectos</string>
     <string name="exito">¡Éxito!</string>
     <string name="cerrarsesion">Cerrar Sesión</string>
-
+    <string name="yaexiste">Un usuario con ese correo ya existe</string>
+    <string name="credits">CREDITS</string>
 
 
     <string-array name="materias_array">
@@ -54,4 +55,55 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="creditsbodytitle">
+        Gracias a toda la talentosa familia de Dagus que hizo todo esto posible
+    </string>
+
+    <string name="creditsbody">
+        Equipo de Desarrollo Tecnológico\n
+        \tRicardo Michel Reyes - Deep Learning Artist\n
+        \tSantiago Hernández (El hombre actor) - Head of Android\n
+        \tEmiliano Hernández (Potra) - Head of iOS\n
+        \tDiego Velazquez (Púas) - Head of Servers\n
+        \tRicardo Barrera - Head of Web Front End\n
+        \tIñaki Sigüenza (Bolsita) - Head of Web Back End\n
+        \tDiego Ramírez (Pacha) - Servers Intern\n\n
+        Desarrolladores de Contenido\n
+        \tAndrea Hernández Castañeda - Lengua\n
+        \tHugo Eyer - Filosofía\n
+        \tSebastian Schietekat - Matemáticas\n
+        \tNancy Ascencio - Geografía Económica\n
+        \tDiego Bernal - Gráfica\n
+        \tEmiliano Hernández - Derecho\n
+        \tMartín Basile - Física/Área2\n
+        \tCons Velandia - Biología\n
+        \tElias Peña - Historia/Geografía\n
+        \tSebas Morlan - Morfofisiología\n
+        \tRo Villanueva (El Sol) - Matemáticas\n
+        \tJavi Leal - Física/Área 1\n
+        \tMinerva Polanco - Psicología/Introducción\n
+        \tDaniel Camacho López - Química/Ética/Etimologías/EPS/Lógica\n
+        \tDiego Ramírez (Pacha) - Contabilidad\n
+        \tDiego Velazquez - Temas Selectos de Matemáticas\n\n
+        Chief Team\n
+        \tDann Centeno - CEO/Co-Founder\n
+        \tRicardo Michel Reyes - Deep Learning Artist/CTO/Co-Founder\n
+        \tIñaki Siguenza - Head of Web Design and Development/CDO/Co-Founder\n
+        \tJosé Miguel Sandoval - General Council/ Co- Founder\n
+        \tEmiliano Cordova - CMO/Co-Founder\n
+        \tDaniel Camacho - CCO/Co-Founder\n
+        \tJesus Valencia - CFO\n\n
+        Especialmente gracias a\n
+        \tLuis Alberto Rodriguez - Tutor Empresarial ITESM Campus Santa Fe\n
+        \tEspecialmente a nuestra casa la Incubadora de Alto Impacto del ITESM Campus Santa Fe\n\n
+        Icons made by (Freepik) from www.flaticon.com\n
+        (http://www.freepik.com/)\n
+        Icons made by (Madebyoliver) from www.flaticon.com\n
+        (http://www.flaticon.com/authors/madebyoliver)\n
+    </string>
+
 </resources>

@@ -1,19 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/cell_linear_layout">
+    android:id="@+id/cell_linear_layout"
+    android:weightSum="1">
+
+    <ImageView
+        android:id="@+id/cell_image"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_weight="0.21"
+        android:scaleType="centerCrop"
+        app:srcCompat="@color/almostTransAzul" />
 
     <TextView
-        android:text="TextView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
         android:id="@+id/cell_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:lineSpacingExtra="8sp"
+        android:padding="8dp"
         android:paddingBottom="8dp"
         android:paddingEnd="8dp"
         android:paddingLeft="8dp"
         android:paddingRight="8dp"
         android:paddingStart="8dp"
         android:paddingTop="8dp"
-        android:padding="8dp" />
+        android:text="TextView"
+        android:textAlignment="viewStart" />
 </LinearLayout>

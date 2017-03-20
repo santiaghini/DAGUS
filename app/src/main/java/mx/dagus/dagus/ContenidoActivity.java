@@ -12,6 +12,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,6 +26,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -40,16 +43,15 @@ public class ContenidoActivity extends AppCompatActivity {
     String name;
     TextView titu;
     String tit;
-    ArrayList<String> elementos;
+    ArrayList<Shared> elementos;
     Typeface gothambold;
     TextView textView;
     ContenidoAdapter contenidoAdapter;
     String id;
     String tipo;
+    String type;
     boolean tablet;
     String nombre;
-    ArrayList<Guia> arrayguia = new ArrayList<Guia>();
-    ArrayList<Materia> arraymateria = new ArrayList<Materia>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +67,7 @@ public class ContenidoActivity extends AppCompatActivity {
         id = getIntent().getStringExtra("id");
         nombre = getIntent().getStringExtra("nombre").toUpperCase();
 
-        if (tipo.equals("materias")){
+        if (tipo.equals("subjects")){
             titu.setText(nombre + "_");
         } else {
             titu.setText("MATERIAS DE " + nombre + "_");
@@ -79,7 +81,7 @@ public class ContenidoActivity extends AppCompatActivity {
             titu.setTextSize(36); //44
         }
 
-        elementos = new ArrayList<String>();
+        elementos = new ArrayList<Shared>();
 
         queue = Volley.newRequestQueue(this);
 
@@ -94,9 +96,9 @@ public class ContenidoActivity extends AppCompatActivity {
             public void onResponse(JSONObject response) {
                 Log.d("response" , response.toString() );
                 Log.d("url" , url);
-                if (tipo.equals("grados")) {
+                if (tipo.equals("grades")) {
                     try {
-                        JSONArray materias = response.getJSONArray("materias");
+                        JSONArray materias = response.getJSONArray("subjects");
                         if (materias.length() == 0) {
                             Toast nomaterias = Toast.makeText(getApplicationContext() , getString(R.string.nohaymaterias) , Toast.LENGTH_LONG);
                             nomaterias.show();
@@ -107,15 +109,15 @@ public class ContenidoActivity extends AppCompatActivity {
                             for (int contador = 0 ; contador < materias.length() ; contador ++) {
                                 try {
                                     JSONObject object = materias.getJSONObject(contador);
-                                    String nombre = object.getString("nombre");
-                                    contenidoAdapter.add(nombre);
+                                    String nombre = object.getString("name");
                                     String color = object.getString("color");
-                                    String colegio = object.getString("colegio");
+                                    String colegio = object.getString("school");
+                                    String image = object.getString("icon");
                                     JSONObject id = object.getJSONObject("_id");
-                                    String clave = object.getString("clave");
+                                    String clave = object.getString("key");
                                     String oid = id.getString("$oid");
-                                    Materia materia = new Materia(nombre , color, oid , clave , colegio);
-                                    arraymateria.add(materia);
+                                    Materia materia = new Materia(nombre , color, oid , clave , colegio , image);
+                                    contenidoAdapter.add(materia);
 
                                 } catch (JSONException exception) {
                                     Log.e("exception", "Hubo una excepción");
@@ -126,11 +128,11 @@ public class ContenidoActivity extends AppCompatActivity {
                                 @Override
                                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                                    Materia materia = arraymateria.get(position);
+                                    Materia materia = (Materia) elementos.get(position);
 
                                     Intent intent = new Intent(ContenidoActivity.this , ContenidoActivity.class);
                                     intent.putExtra("nombre", materia.nombre);
-                                    intent.putExtra("tipo" , "materias");
+                                    intent.putExtra("tipo" , "subjects");
                                     intent.putExtra("id" , materia.id);
                                     startActivity(intent);
                                 }
@@ -140,27 +142,29 @@ public class ContenidoActivity extends AppCompatActivity {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                } else if (tipo.equals("materias")) {
+                } else if (tipo.equals("subjects")) {
                     try {
-                        JSONArray guias = response.getJSONArray("guias");
+                        JSONArray guias = response.getJSONArray("guides");
                         if (guias.length() == 0) {
                             Toast noguias = Toast.makeText(getApplicationContext() , getString(R.string.nohayguias) , Toast.LENGTH_LONG);
                             noguias.show();
                         } else {
                             contenidoAdapter.clear();
                             elementos.clear();
-                            arrayguia.clear();
                             Log.d("response" , String.valueOf(response.length()));
                             for (int contador = 0 ; contador < guias.length() ; contador ++) {
                                 try {
                                     JSONObject object = guias.getJSONObject(contador);
-                                    String nombre = object.getString("nombre");
-                                    contenidoAdapter.add(nombre);
-                                    String archivo = object.getString("archivo");
+                                    String nombre = object.getString("name");
+                                    String archivo = object.getString("file");
                                     JSONObject id = object.getJSONObject("_id");
                                     String oid = id.getString("$oid");
-                                    Guia guia = new Guia(nombre, archivo, oid);
-                                    arrayguia.add(guia);
+                                    String type = object.getString("type");
+                                    String image = object.getString("icon");
+                                    Log.d("type" , type);
+
+                                    File file = new File(nombre , archivo , oid ,  type , image);
+                                    contenidoAdapter.add(file);
 
                                 } catch (JSONException exception) {
                                     Log.e("exception", "Hubo una excepción");
@@ -170,11 +174,20 @@ public class ContenidoActivity extends AppCompatActivity {
                             list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                                 @Override
                                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                                    Guia guia = arrayguia.get(position);
+                                    File file = (File) elementos.get(position);
 
-                                    Intent intent = new Intent(ContenidoActivity.this , GuiaActivity.class);
-                                    intent.putExtra("archivo", guia.archivo);
-                                    startActivity(intent);
+                                    if (file.type.equals("markdown")) {
+                                        Intent intent = new Intent(ContenidoActivity.this, GuiaActivity.class);
+                                        intent.putExtra("archivo", file.archivo);
+                                        startActivity(intent);
+                                    } else {
+                                        Intent intent = new Intent(ContenidoActivity.this, VideoActivity.class);
+                                        intent.putExtra("archivo", file.archivo);
+                                        intent.putExtra("name" , file.nombre);
+                                        startActivity(intent);
+                                    }
+
+
                                 }
                             });
 
@@ -214,11 +227,11 @@ public class ContenidoActivity extends AppCompatActivity {
 
     }
 
-    private class ContenidoAdapter extends ArrayAdapter<String> {
+    private class ContenidoAdapter extends ArrayAdapter<Shared> {
         Context context;
         int resourceid;
-        ArrayList<String> data;
-        public ContenidoAdapter(Context context , int resourceid , ArrayList<String> data) {
+        ArrayList<Shared> data;
+        public ContenidoAdapter(Context context , int resourceid , ArrayList<Shared> data) {
             super(context , resourceid , data);
             this.context = context;
             this.resourceid = resourceid;
@@ -236,7 +249,7 @@ public class ContenidoActivity extends AppCompatActivity {
 
         @Nullable
         @Override
-        public String getItem(int position) {
+        public Shared getItem(int position) {
             return elementos.get(position);
         }
 
@@ -248,12 +261,24 @@ public class ContenidoActivity extends AppCompatActivity {
             }
 
             TextView textView = (TextView) convertView.findViewById(R.id.cell_text_view);
-            textView.setText(elementos.get(position).toUpperCase());
+            textView.setText(elementos.get(position).nombre.toUpperCase());
             textView.setTypeface(gothambold);
             if (tablet == true) {
                 textView.setTextSize(30);
             } else {
                 textView.setTextSize(24);//28
+            }
+
+
+            if (elementos.get(position).image != null) {
+                String url = "https://s3.amazonaws.com/dagus/" + elementos.get(position).image;
+
+                ImageView imageview = (ImageView) convertView.findViewById(R.id.cell_image);
+                Picasso.with(getApplicationContext())
+                        .load(url).centerCrop().resize(96,96)
+                        .into(imageview);
+                LinearLayout.LayoutParams parameters = new LinearLayout.LayoutParams(96,96);
+                imageview.setLayoutParams(parameters);
             }
 
             return convertView;
@@ -267,31 +292,38 @@ public class ContenidoActivity extends AppCompatActivity {
 
 }
 
-class Guia {
+class Shared {
     String nombre;
-    String archivo;
     String id;
+    String image;
+}
 
-    Guia (String nombre , String archivo , String id) {
+class File extends Shared {
+    String archivo;
+    String type;
+
+    File (String nombre , String archivo , String id , String type , String image) {
         this.nombre = nombre;
         this.archivo = archivo;
         this.id = id;
+        this.type = type;
+        this.image = image;
+
     }
 }
 
-class Materia {
-    String nombre;
+class Materia extends Shared {
     String color;
-    String id;
     String clave;
     String colegio;
 
-    Materia (String nombre , String color , String id , String clave , String colegio) {
+    Materia (String nombre , String color , String id , String clave , String colegio , String image) {
         this.nombre = nombre;
         this.color = color;
         this.id = id;
         this.clave = clave;
         this.colegio = colegio;
+        this.image = image;
     }
 }
 

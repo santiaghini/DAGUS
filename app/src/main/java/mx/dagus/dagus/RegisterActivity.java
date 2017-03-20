@@ -8,13 +8,18 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Base64;
 import android.provider.Settings.Secure;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -39,12 +44,15 @@ import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
+import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.security.MessageDigest;
@@ -66,6 +74,7 @@ public class RegisterActivity extends AppCompatActivity {
     EditText editpass;
     EditText editconfirm;
     EditText editname;
+    String name;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,10 +82,12 @@ public class RegisterActivity extends AppCompatActivity {
         FacebookSdk.sdkInitialize(getApplicationContext());
         setContentView(R.layout.activity_register);
 
+        LoginManager.getInstance().logOut();
+
         gothamlight = Typeface.createFromAsset(getAssets() , "fonts/gotham_light.ttf");
         gothambold = Typeface.createFromAsset(getAssets() , "fonts/gotham_bold.ttf");
 
-        Button loginbutton = (Button) findViewById(R.id.register_registrarse);
+        final Button loginbutton = (Button) findViewById(R.id.register_registrarse);
 
         loginbutton.setTypeface(gothambold);
         loginbutton.setTextColor(getResources().getColor(R.color.almostwhite));
@@ -116,6 +127,9 @@ public class RegisterActivity extends AppCompatActivity {
         Log.d("hola" , "hola");
 
         loginButton = (LoginButton) findViewById(R.id.register_login);
+        loginButton.setReadPermissions(Arrays.asList(
+                "public_profile", "email", "user_birthday", "user_friends"));
+
         callbackManager = CallbackManager.Factory.create();
 
         Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024);
@@ -128,6 +142,9 @@ public class RegisterActivity extends AppCompatActivity {
                 new FacebookCallback<LoginResult>() {
                     @Override
                     public void onSuccess(LoginResult loginResult) {
+
+                        Log.d("success" , loginResult.getAccessToken().getUserId());
+
                         ConnectivityManager manager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
                         NetworkInfo info = manager.getActiveNetworkInfo();
                         if (info != null && info.isConnected()) {
@@ -137,13 +154,17 @@ public class RegisterActivity extends AppCompatActivity {
                                 facebook.put("token", loginResult.getAccessToken().getToken());
                                 facebook.put("userId", loginResult.getAccessToken().getUserId());
 
-                                final String password = bin2hex(getHash(loginResult.getAccessToken().getUserId()));
+                                //final String password = bin2hex(getHash(loginResult.getAccessToken().getUserId()));
+                                final String password = loginResult.getAccessToken().getUserId();
 
-                                Log.d("mx.dagus.dagus", password);
+                                Log.d("password", password);
 
                                 GraphRequest request = GraphRequest.newMeRequest(loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
                                     @Override
                                     public void onCompleted(JSONObject object, GraphResponse response) {
+
+                                        Log.d("objectface" , object.toString());
+
                                         final String email;
                                         final String name;
                                         String gender;
@@ -152,7 +173,7 @@ public class RegisterActivity extends AppCompatActivity {
                                             name = object.getString("name");
                                             gender = object.getString("gender");
 
-                                            JSONObject user = new JSONObject();
+                                            final JSONObject user = new JSONObject();
                                             user.put("email", email);
                                             user.put("password", password);
                                             user.put("facebook", facebook);
@@ -162,29 +183,82 @@ public class RegisterActivity extends AppCompatActivity {
                                             String url = "https://dagus.mx/api/users";
                                             final String finalEmail = email;
 
-                                            final String token = bin2hex(getHash(finalEmail + password));
 
                                             final JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, user, new Response.Listener<JSONObject>() {
                                                 @Override
                                                 public void onResponse(JSONObject response) {
+
+                                                    String token = null;
+                                                    try {
+                                                        token = response.getString("token");
+                                                    } catch (JSONException e) {
+                                                        e.printStackTrace();
+                                                    }
+
                                                     SharedPreferences preferences = getApplicationContext().getSharedPreferences("Dagus", Context.MODE_PRIVATE);
                                                     SharedPreferences.Editor editor = preferences.edit();
                                                     editor.putString("token", token);
                                                     editor.putString("email", email);
                                                     editor.putString("name", name);
                                                     editor.apply();
+                                                    Intent intent = new Intent(RegisterActivity.this , LandingActivity.class);
+                                                    startActivity(intent);
 
                                                 }
                                             }, new Response.ErrorListener() {
                                                 @Override
                                                 public void onErrorResponse(VolleyError error) {
-                                                    Log.d("mx.dagus.dagus", error.toString());
+                                                    Log.d("error", error.toString());
+                                                    if (error.networkResponse.statusCode == 409) {
+
+                                                        final String url = "https://dagus.mx/api/login";
+                                                        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, user, new Response.Listener<JSONObject>() {
+                                                            @Override
+                                                            public void onResponse(JSONObject response) {
+                                                                Log.d("response", response.toString());
+                                                                String token = null;
+                                                                try {
+                                                                    token = response.getString("token");
+                                                                } catch (JSONException e) {
+                                                                    e.printStackTrace();
+                                                                }
+                                                                SharedPreferences preferences = getApplicationContext().getSharedPreferences("Dagus", Context.MODE_PRIVATE);
+                                                                SharedPreferences.Editor editor = preferences.edit();
+                                                                editor.putString("token", token);
+                                                                editor.apply();
+
+                                                                Intent intent = new Intent(RegisterActivity.this, LandingActivity.class);
+                                                                startActivity(intent);
+
+                                                            }
+
+                                                        }
+                                                                , new Response.ErrorListener() {
+                                                            @Override
+                                                            public void onErrorResponse(VolleyError error) {
+                                                                Log.d("error", error.toString());
+                                                                Toast incorrect = Toast.makeText(getApplicationContext(), "Error" , Toast.LENGTH_SHORT);
+                                                                incorrect.show();
+                                                            }
+                                                        }) {
+
+                                                            @Override
+                                                            public Map<String, String> getHeaders() throws AuthFailureError {
+                                                                Map<String, String> headers = new HashMap<>();
+                                                                headers.put("Content-Type", "application/json");
+                                                                headers.put("Authorization", "c1b79fc950276536c1fdb0d3f2dc4d18a15872671143465a743398da1eb0fcd4");
+                                                                return headers;
+                                                            }
+                                                        };
+
+                                                        requestQueue.add(request);
+                                                    }
                                                 }
                                             }) {
                                                 @Override
                                                 public Map<String, String> getHeaders() throws AuthFailureError {
                                                     Map<String, String> params = new HashMap<>();
-                                                    params.put("Authorization", token);
+                                                    params.put("Authorization", "c1b79fc950276536c1fdb0d3f2dc4d18a15872671143465a743398da1eb0fcd4");
                                                     params.put("Content-Type", "application/json");
                                                     return params;
                                                 }
@@ -240,7 +314,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     public void registrar (View view) {
-        String name = editname.getText().toString();
+        final String name = editname.getText().toString();
         String email = editemail.getText().toString();
         String password = editpass.getText().toString();
         String confirm = editconfirm.getText().toString();
@@ -251,8 +325,6 @@ public class RegisterActivity extends AppCompatActivity {
             notequals.show();
 
         } else {
-            Toast exito = Toast.makeText(getApplicationContext(), getString(R.string.exito) , Toast.LENGTH_SHORT);
-            exito.show();
 
             final JSONObject newuser = new JSONObject();
             try {
@@ -279,7 +351,11 @@ public class RegisterActivity extends AppCompatActivity {
                 SharedPreferences preferences = getApplicationContext().getSharedPreferences("Dagus", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = preferences.edit();
                 editor.putString("token", token);
+                editor.putString("name", name);
                 editor.apply();
+
+                Toast exito = Toast.makeText(getApplicationContext(), getString(R.string.exito) , Toast.LENGTH_SHORT);
+                exito.show();
                 Intent intent = new Intent(RegisterActivity.this, LandingActivity.class);
                 startActivity(intent);
 
@@ -291,6 +367,9 @@ public class RegisterActivity extends AppCompatActivity {
             public void onErrorResponse(VolleyError error) {
                 Log.d("error", error.toString());
                 if (error.networkResponse.statusCode == 409) {
+
+                    Toast yaexiste = Toast.makeText(getApplicationContext(), getString(R.string.yaexiste) , Toast.LENGTH_SHORT);
+                    yaexiste.show();
 
                     final String url = "https://dagus.mx/api/login";
                     JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, newuser, new Response.Listener<JSONObject>() {
@@ -306,6 +385,7 @@ public class RegisterActivity extends AppCompatActivity {
                             SharedPreferences preferences = getApplicationContext().getSharedPreferences("Dagus", Context.MODE_PRIVATE);
                             SharedPreferences.Editor editor = preferences.edit();
                             editor.putString("token", token);
+                            editor.putString("name" , name);
                             editor.apply();
 
                             Intent intent = new Intent(RegisterActivity.this, LandingActivity.class);
@@ -318,7 +398,7 @@ public class RegisterActivity extends AppCompatActivity {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             Log.d("error", error.toString());
-                            Toast incorrect = Toast.makeText(getApplicationContext(), getString(R.string.loginincorrecto) , Toast.LENGTH_LONG);
+                            Toast incorrect = Toast.makeText(getApplicationContext(), getString(R.string.loginincorrecto) , Toast.LENGTH_SHORT);
                             incorrect.show();
                         }
                     }) {
@@ -351,4 +431,10 @@ public class RegisterActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        callbackManager.onActivityResult(requestCode, resultCode, data);
+    }
+
 }
+

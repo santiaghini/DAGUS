@@ -21,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,10 +37,12 @@ import com.android.volley.toolbox.DiskBasedCache;
 import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.facebook.AccessToken;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -61,6 +64,8 @@ public class LandingActivity extends AppCompatActivity {
     ArrayList<String> nombres;
     boolean tablet;
     Typeface gothamlight;
+    String name;
+    String token;
 
 
     @Override
@@ -69,13 +74,31 @@ public class LandingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_landing);
         Log.d("hola" , "hola");
         SharedPreferences preferences = getApplicationContext().getSharedPreferences("Dagus" , Context.MODE_PRIVATE);
-        String token = preferences.getString("token", null);
+        token = preferences.getString("token", null);
 
         if (token == null) {
             Intent intent1 = new Intent(LandingActivity.this , InicioActivity.class);
             startActivity(intent1);
         } else {
             Log.d("token" , token);
+        }
+
+        String name = preferences.getString("name", null);
+        if (name!=null) {
+            Toast hola = Toast.makeText(getApplicationContext(), "¡Hola " + name + "!", Toast.LENGTH_SHORT);
+            hola.show();
+        }
+
+        ImageView userpicture = (ImageView)  findViewById(R.id.landing_profilepicture);
+
+        String userID = AccessToken.getCurrentAccessToken().getUserId();
+
+        if (userID!=null){
+            Picasso.with(getApplicationContext())
+                    .load("https://graph.facebook.com/" + userID + "/picture?type=large")
+                    .into(userpicture);
+        } else {
+            userpicture.setVisibility(View.INVISIBLE);
         }
 
         buscador = (AutoCompleteTextView) findViewById(R.id.landing_buscador);
@@ -100,7 +123,6 @@ public class LandingActivity extends AppCompatActivity {
             buscador.setTextSize(16);//18
         }
         nombres = new ArrayList<String>();
-        String string = "panditas";
         contenidoAdapter = new ContenidoAdapter(getApplicationContext() , android.R.layout.simple_list_item_1 , nombres);
         buscador.setAdapter(contenidoAdapter);
         buscador.setDropDownBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.dagusAzul)));
@@ -136,6 +158,7 @@ public class LandingActivity extends AppCompatActivity {
                 }
                 try {
                     String url = "https://dagus.mx/api/?query=" + URLEncoder.encode(texto, "utf-8");
+                    Log.d("url", url);
                     Log.d("texto", texto);
                     JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
                         @Override
@@ -143,10 +166,11 @@ public class LandingActivity extends AppCompatActivity {
                             contenidoAdapter.clear();
                             elementos.clear();
                             nombres.clear();
+                            Log.d("response" , response.toString());
                             for (int contador = 0; contador < response.length(); contador++) {
                                 try {
                                     JSONObject object = response.getJSONObject(contador);
-                                    String nombre = object.getString("nombre");
+                                    String nombre = object.getString("name");
                                     JSONObject id = object.getJSONObject("_id");
                                     String oid = id.getString("$oid");
                                     String tipo = object.getString("tipo");
@@ -155,6 +179,7 @@ public class LandingActivity extends AppCompatActivity {
                                     contenidoAdapter.add(resultado.nombre);
                                     elementos.add(resultado);
                                     nombres.add(resultado.nombre);
+                                    Log.d("object" , object.toString());
                                     Log.d("elemento", response.get(contador).toString());
                                 } catch (JSONException exception) {
                                     Log.e("exception", "Hubo una excepción");
@@ -167,13 +192,15 @@ public class LandingActivity extends AppCompatActivity {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             Log.d("error", error.toString());
+                            Toast noconexion = Toast.makeText(getApplicationContext(), "No hay conexión", Toast.LENGTH_SHORT);
+
                         }
                     }) {
                         @Override
                         public Map<String, String> getHeaders() throws AuthFailureError {
                             Map<String, String> headers = new HashMap<>();
                             headers.put("Content-Type", "application/json");
-                            headers.put("Authorization", "6ac0e21ec8de7bd72e58aa2bca1983aa9cfe534ff4b2df1255307e75c714a664");
+                            headers.put("Authorization", token);
                             return headers;
                         }
                     };
@@ -249,10 +276,10 @@ public class LandingActivity extends AppCompatActivity {
         public View getDropDownView(int position, View convertView, ViewGroup parent) {
             if (convertView == null){
                 LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = inflater.inflate(R.layout.cell, null);
+                convertView = inflater.inflate(R.layout.celldropdown, null);
             }
 
-            TextView textView = (TextView) convertView.findViewById(R.id.cell_text_view);
+            TextView textView = (TextView) convertView.findViewById(R.id.celldropdowntext);
             textView.setText(nombres.get(position).toUpperCase());
             textView.setTypeface(gothambold);
             if (tablet == true) {
@@ -269,10 +296,10 @@ public class LandingActivity extends AppCompatActivity {
         public View getView(int position, View convertView, ViewGroup parent) {
             if (convertView == null){
                 LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = inflater.inflate(R.layout.cell, null);
+                convertView = inflater.inflate(R.layout.celldropdown, null);
             }
 
-            TextView textView = (TextView) convertView.findViewById(R.id.cell_text_view);
+            TextView textView = (TextView) convertView.findViewById(R.id.celldropdowntext);
             textView.setText(nombres.get(position).toUpperCase());
             textView.setTypeface(gothambold);
             if (tablet == true) {
@@ -315,6 +342,12 @@ public class LandingActivity extends AppCompatActivity {
         Intent intent = new Intent(LandingActivity.this, InicioActivity.class);
         startActivity(intent);
     }
+
+    public void credits(View view) {
+        Intent intent = new Intent(LandingActivity.this, CreditsActivity.class);
+        startActivity(intent);
+    }
+
 }
 
 class Resultado {

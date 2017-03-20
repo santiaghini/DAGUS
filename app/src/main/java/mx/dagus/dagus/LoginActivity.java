@@ -36,10 +36,13 @@ import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
+import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.security.MessageDigest;
@@ -57,12 +60,15 @@ public class LoginActivity extends AppCompatActivity {
 
     EditText editemail;
     EditText editpass;
+    String name;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         FacebookSdk.sdkInitialize(getApplicationContext());
         setContentView(R.layout.activity_login);
+
+        LoginManager.getInstance().logOut();
 
         gothamlight = Typeface.createFromAsset(getAssets() , "fonts/gotham_light.ttf");
         gothambold = Typeface.createFromAsset(getAssets() , "fonts/gotham_bold.ttf");
@@ -98,6 +104,9 @@ public class LoginActivity extends AppCompatActivity {
         Log.d("hola" , "hola");
 
         loginButton = (LoginButton) findViewById(R.id.login_login);
+        loginButton.setReadPermissions(Arrays.asList(
+                "public_profile", "email", "user_birthday", "user_friends"));
+
         callbackManager = CallbackManager.Factory.create();
 
         Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024);
@@ -110,7 +119,9 @@ public class LoginActivity extends AppCompatActivity {
                 new FacebookCallback<LoginResult>() {
                     @Override
                     public void onSuccess(LoginResult loginResult) {
-                        Log.d("success","succes");
+
+                        Log.d("success" , loginResult.getAccessToken().getUserId());
+
                         ConnectivityManager manager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
                         NetworkInfo info = manager.getActiveNetworkInfo();
                         if (info != null && info.isConnected()) {
@@ -120,13 +131,17 @@ public class LoginActivity extends AppCompatActivity {
                                 facebook.put("token", loginResult.getAccessToken().getToken());
                                 facebook.put("userId", loginResult.getAccessToken().getUserId());
 
-                                final String password = bin2hex(getHash(loginResult.getAccessToken().getUserId()));
+                                //final String password = bin2hex(getHash(loginResult.getAccessToken().getUserId()));
+                                final String password = loginResult.getAccessToken().getUserId();
 
-                                Log.d("mx.dagus.dagus", password);
+                                Log.d("password", password);
 
                                 GraphRequest request = GraphRequest.newMeRequest(loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
                                     @Override
                                     public void onCompleted(JSONObject object, GraphResponse response) {
+
+                                        Log.d("objectface" , object.toString());
+
                                         final String email;
                                         final String name;
                                         String gender;
@@ -135,7 +150,7 @@ public class LoginActivity extends AppCompatActivity {
                                             name = object.getString("name");
                                             gender = object.getString("gender");
 
-                                            JSONObject user = new JSONObject();
+                                            final JSONObject user = new JSONObject();
                                             user.put("email", email);
                                             user.put("password", password);
                                             user.put("facebook", facebook);
@@ -145,23 +160,77 @@ public class LoginActivity extends AppCompatActivity {
                                             String url = "https://dagus.mx/api/users";
                                             final String finalEmail = email;
 
-                                            final String token = bin2hex(getHash(finalEmail + password));
 
                                             final JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, user, new Response.Listener<JSONObject>() {
                                                 @Override
                                                 public void onResponse(JSONObject response) {
+
+                                                    String token = null;
+                                                    try {
+                                                        token = response.getString("token");
+                                                    } catch (JSONException e) {
+                                                        e.printStackTrace();
+                                                    }
+
                                                     SharedPreferences preferences = getApplicationContext().getSharedPreferences("Dagus", Context.MODE_PRIVATE);
                                                     SharedPreferences.Editor editor = preferences.edit();
                                                     editor.putString("token", token);
                                                     editor.putString("email", email);
                                                     editor.putString("name", name);
                                                     editor.apply();
+                                                    Intent intent = new Intent(LoginActivity.this , LandingActivity.class);
+                                                    startActivity(intent);
 
                                                 }
                                             }, new Response.ErrorListener() {
                                                 @Override
                                                 public void onErrorResponse(VolleyError error) {
-                                                    Log.d("mx.dagus.dagus", error.toString());
+                                                    Log.d("error", error.toString());
+                                                    if (error.networkResponse.statusCode == 409) {
+
+                                                        final String url = "https://dagus.mx/api/login";
+                                                        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, user, new Response.Listener<JSONObject>() {
+                                                            @Override
+                                                            public void onResponse(JSONObject response) {
+                                                                Log.d("response", response.toString());
+                                                                String token = null;
+                                                                try {
+                                                                    token = response.getString("token");
+                                                                } catch (JSONException e) {
+                                                                    e.printStackTrace();
+                                                                }
+                                                                SharedPreferences preferences = getApplicationContext().getSharedPreferences("Dagus", Context.MODE_PRIVATE);
+                                                                SharedPreferences.Editor editor = preferences.edit();
+                                                                editor.putString("token", token);
+                                                                editor.putString("name" , name);
+                                                                editor.apply();
+
+                                                                Intent intent = new Intent(LoginActivity.this, LandingActivity.class);
+                                                                startActivity(intent);
+
+                                                            }
+
+                                                        }
+                                                                , new Response.ErrorListener() {
+                                                            @Override
+                                                            public void onErrorResponse(VolleyError error) {
+                                                                Log.d("error", error.toString());
+                                                                Toast incorrect = Toast.makeText(getApplicationContext(), "Error" , Toast.LENGTH_SHORT);
+                                                                incorrect.show();
+                                                            }
+                                                        }) {
+
+                                                            @Override
+                                                            public Map<String, String> getHeaders() throws AuthFailureError {
+                                                                Map<String, String> headers = new HashMap<>();
+                                                                headers.put("Content-Type", "application/json");
+                                                                headers.put("Authorization", "c1b79fc950276536c1fdb0d3f2dc4d18a15872671143465a743398da1eb0fcd4");
+                                                                return headers;
+                                                            }
+                                                        };
+
+                                                        requestQueue.add(request);
+                                                    }
                                                 }
                                             }) {
                                                 @Override
@@ -229,10 +298,6 @@ public class LoginActivity extends AppCompatActivity {
             String email = editemail.getText().toString();
             String password = editpass.getText().toString();
 
-
-            Toast exito = Toast.makeText(getApplicationContext(), getString(R.string.exito) , Toast.LENGTH_SHORT);
-            exito.show();
-
             JSONObject user = new JSONObject();
             try {
                 user.put("email", email);
@@ -256,10 +321,26 @@ public class LoginActivity extends AppCompatActivity {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                    try {
+                        name = response.getString("name");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
                     SharedPreferences preferences = getApplicationContext().getSharedPreferences("Dagus", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putString("token", token);
+                    editor.putString("name", name);
                     editor.apply();
+
+                    try {
+                        name = response.getString("name");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    Toast exito = Toast.makeText(getApplicationContext(), getString(R.string.exito) , Toast.LENGTH_SHORT);
+                    exito.show();
 
                     Intent intent = new Intent(LoginActivity.this, LandingActivity.class);
                     startActivity(intent);
@@ -288,5 +369,10 @@ public class LoginActivity extends AppCompatActivity {
             requestQueue.add(request);
 
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 }
