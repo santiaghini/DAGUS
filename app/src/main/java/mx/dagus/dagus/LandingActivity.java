@@ -85,13 +85,13 @@ public class LandingActivity extends AppCompatActivity {
 
         String name = preferences.getString("name", null);
         if (name!=null) {
-            Toast hola = Toast.makeText(getApplicationContext(), "¡Hola " + name + "!", Toast.LENGTH_SHORT);
+            Toast hola = Toast.makeText(getApplicationContext(), "¡Hola " + name + "!", Toast.LENGTH_LONG);
             hola.show();
         }
 
         ImageView userpicture = (ImageView)  findViewById(R.id.landing_profilepicture);
 
-        try {
+        if (AccessToken.getCurrentAccessToken()!=null) {
             String userID = AccessToken.getCurrentAccessToken().getUserId();
 
             Log.d("userid", userID);
@@ -104,8 +104,6 @@ public class LandingActivity extends AppCompatActivity {
                 userpicture.setVisibility(View.INVISIBLE);
             }
 
-        } catch (NullPointerException n){
-            Log.d("nullpointexception" , n.toString());
         }
 
         buscador = (AutoCompleteTextView) findViewById(R.id.landing_buscador);
@@ -200,6 +198,7 @@ public class LandingActivity extends AppCompatActivity {
                         public void onErrorResponse(VolleyError error) {
                             Log.d("error", error.toString());
                             Toast noconexion = Toast.makeText(getApplicationContext(), "No hay conexión", Toast.LENGTH_SHORT);
+                            noconexion.show();
 
                         }
                     }) {
@@ -231,26 +230,6 @@ public class LandingActivity extends AppCompatActivity {
             }
         });
 
-    }
-
-    public void inicio(View view) {
-        Intent intent = new Intent(LandingActivity.this, InicioActivity.class);
-        startActivity(intent);
-    }
-
-
-    public void materias(View view) {
-        Intent intent = new Intent(LandingActivity.this, ContenidoActivity.class);
-        intent.putExtra("name", "materias");
-        intent.putExtra("tit", "MATERIAS");
-        startActivity(intent);
-    }
-
-    public void grados(View view) {
-        Intent intent = new Intent(LandingActivity.this, ContenidoActivity.class);
-        intent.putExtra("name", "grados");
-        intent.putExtra("tit", "GRADOS");
-        startActivity(intent);
     }
 
     private class ContenidoAdapter extends ArrayAdapter<String> {
