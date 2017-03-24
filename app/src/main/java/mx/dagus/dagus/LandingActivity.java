@@ -334,6 +334,11 @@ public class LandingActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public void help(View view) {
+        Intent intent = new Intent(LandingActivity.this, HelpActivity.class);
+        startActivity(intent);
+    }
+
 }
 
 class Resultado {

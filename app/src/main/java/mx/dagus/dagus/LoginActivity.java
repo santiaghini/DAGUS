@@ -244,6 +244,7 @@ public class LoginActivity extends AppCompatActivity {
                                             requestQueue.add(jsonRequest);
                                         } catch (JSONException e) {
                                             e.printStackTrace();
+                                            Toast.makeText(LoginActivity.this, "Hubo un error", Toast.LENGTH_SHORT).show();
                                         }
                                     }
                                 });

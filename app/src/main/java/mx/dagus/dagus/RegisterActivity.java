@@ -266,6 +266,7 @@ public class RegisterActivity extends AppCompatActivity {
                                             requestQueue.add(jsonRequest);
                                         } catch (JSONException e) {
                                             e.printStackTrace();
+                                            Toast.makeText(RegisterActivity.this, "Hubo un error", Toast.LENGTH_SHORT).show();
                                         }
                                     }
                                 });

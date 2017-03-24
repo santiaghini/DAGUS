@@ -28,6 +28,7 @@
     <string name="cerrarsesion">Cerrar Sesión</string>
     <string name="yaexiste">Un usuario con ese correo ya existe</string>
     <string name="credits">CREDITS</string>
+    <string name="help">¿Qué puedes buscar?</string>
 
 
     <string-array name="materias_array">
@@ -104,6 +105,23 @@
         (http://www.freepik.com/)\n
         Icons made by (Madebyoliver) from www.flaticon.com\n
         (http://www.flaticon.com/authors/madebyoliver)\n
+    </string>
+
+    <string name="helptitle">
+        En Dagus podrás encontrar los apoyos que necesitas para cada una de tus materias, como guías, notebooks y videos.
+
+    </string>
+
+    <string name="helpbody">En este buscador puedes buscar por las categorías de grado o una materia en específico.\n\n
+        <b>Grados:</b>\n
+        \t- 4to\n
+        \t- 5to\n
+        \t- 6to\n\n
+        <b>Materias:</b>\n
+        \t- Matemáticas\n
+        \t- Biología\n
+        \t- Química\n
+        \t    Etc.\n
     </string>
 
 </resources>
