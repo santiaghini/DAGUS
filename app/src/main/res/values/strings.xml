@@ -57,6 +57,7 @@
         completions."
     </string>
 
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
@@ -112,7 +113,7 @@
 
     </string>
 
-    <string name="helpbody">En este buscador puedes buscar por las categorías de grado o una materia en específico.\n\n
+    <string name="helpbody">A través de este buscador puedes encontrar por las categorías de grado o una materia en específico.\n\n
         <b>Grados:</b>\n
         \t- 4to\n
         \t- 5to\n

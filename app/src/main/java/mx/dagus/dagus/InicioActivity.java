@@ -73,7 +73,7 @@ public class InicioActivity extends AppCompatActivity {
         loginbutton.setTypeface(gothambold);
         loginbutton.setTextColor(getResources().getColor(R.color.almostTransAzul));
 
-        Uri url = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.loginvideo);
+        Uri url = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.login_video_comprimido);
         //String url = "https://dagus.mx/login-video.mp4";
 
         videoView = (TextureVideoView) findViewById(R.id.inicio_video);

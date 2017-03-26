@@ -120,6 +120,11 @@ public class LandingActivity extends AppCompatActivity {
         cerrartext.setTypeface(gothamlight);
         cerrartext.setTextColor(getResources().getColor(R.color.cerrarsesion));
 
+        TextView texthelp = (TextView) findViewById(R.id.landing_texthelp);
+        texthelp.setTypeface(gothambold);
+        texthelp.setTextColor(getResources().getColor(R.color.white));
+        //texthelp.setText(getText(R.string.help).toString().toUpperCase());
+
         elementos = new ArrayList<Resultado>();
         tablet = getResources().getBoolean(R.bool.tablet);
         if (tablet == true) {
