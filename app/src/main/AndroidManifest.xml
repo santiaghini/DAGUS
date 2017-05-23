@@ -58,6 +58,8 @@
         <activity android:name=".VideoActivity" />
         <activity android:name=".CreditsActivity" />
         <activity android:name=".HelpActivity" />
+        <activity android:name=".ConfirmCode" />
+        <activity android:name=".ForgotPasswordActivity"></activity>
     </application>
 
 </manifest>

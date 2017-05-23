@@ -1,6 +1,8 @@
 package mx.dagus.dagus;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PorterDuff;
@@ -12,6 +14,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,6 +29,20 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.auth.AnonymousAWSCredentials;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUser;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserAttributes;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserCodeDeliveryDetails;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserDetails;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserPool;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserSession;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.handlers.GenericHandler;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.handlers.SignUpHandler;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.cognitoidentityprovider.AmazonCognitoIdentityProvider;
+import com.amazonaws.services.cognitoidentityprovider.AmazonCognitoIdentityProviderClient;
 import com.android.volley.AuthFailureError;
 import com.android.volley.Cache;
 import com.android.volley.Network;
@@ -67,6 +84,8 @@ public class RegisterActivity extends AppCompatActivity {
     private LoginButton loginButton;
     private CallbackManager callbackManager;
 
+    String email;
+
     RequestQueue requestQueue;
     Typeface gothambold;
     Typeface gothamlight;
@@ -75,6 +94,50 @@ public class RegisterActivity extends AppCompatActivity {
     EditText editconfirm;
     EditText editname;
     String name;
+    String password;
+
+    private ProgressDialog waitDialog;
+    private AlertDialog userDialog;
+
+    /**
+     * Add your pool id here
+     */
+    private static final String userPoolId = "us-west-2_9By8jo8pl";
+
+    /**
+     * Add you app id
+     */
+    private static final String clientId = "168nupr8vi67qcujrvm4qamba0";
+
+    /**
+     * App secret associated with your app id - if the App id does not have an associated App secret,
+     * set the App secret to null.
+     * e.g. clientSecret = null;
+     */
+    private static final String clientSecret = "vsnrvghep9qrucnfcg6truq51dlb1jvu3c49dchm0v2677ii0fo";
+
+    /**
+     * Set Your User Pools region.
+     * e.g. if your user pools are in US East (N Virginia) then set cognitoRegion = Regions.US_EAST_1.
+     */
+    private static final Regions cognitoRegion = Regions.US_WEST_2;
+
+    // User details from the service
+    private static CognitoUserSession currSession;
+    private static CognitoUserDetails userDetails;
+
+
+    EditText emailText;
+    EditText passwordText;
+
+    EditText confirmcodeText;
+
+    CognitoUser cognitoUser;
+    GenericHandler confirmationCallback;
+
+
+
+    static CognitoUserPool userPool;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,6 +188,18 @@ public class RegisterActivity extends AppCompatActivity {
         editname.setBackground(background);
 
         Log.d("hola" , "hola");
+
+
+
+
+        ClientConfiguration clientConfiguration = new ClientConfiguration();
+        AmazonCognitoIdentityProvider cipClient = new AmazonCognitoIdentityProviderClient(new AnonymousAWSCredentials(), clientConfiguration);
+        cipClient.setRegion(Region.getRegion(cognitoRegion));
+        userPool = new CognitoUserPool(getApplicationContext(), userPoolId, clientId, clientSecret, cipClient);
+
+
+
+
 
         loginButton = (LoginButton) findViewById(R.id.register_login);
         loginButton.setReadPermissions(Arrays.asList(
@@ -314,7 +389,7 @@ public class RegisterActivity extends AppCompatActivity {
         return String.format("%0" + (data.length*2) + "x", new BigInteger(1, data));
     }
 
-    public void registrar (View view) {
+    /* public void registrar (View view) {
         final String name = editname.getText().toString();
         String email = editemail.getText().toString();
         String password = editpass.getText().toString();
@@ -431,10 +506,247 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     }
+    */
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         callbackManager.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public void registrar (View view) {
+        Context context = getApplicationContext();
+
+        email = editemail.getText().toString();
+        password = editpass.getText().toString();
+        String confirm = editconfirm.getText().toString();
+        name = editname.getText().toString();
+
+        // Create a CognitoUserAttributes object and add user attributes
+        final CognitoUserAttributes userAttributes = new CognitoUserAttributes();
+
+
+        ClientConfiguration clientConfiguration = new ClientConfiguration();
+        AmazonCognitoIdentityProvider cipClient = new AmazonCognitoIdentityProviderClient(new AnonymousAWSCredentials(), clientConfiguration);
+        cipClient.setRegion(Region.getRegion(cognitoRegion));
+        userPool = new CognitoUserPool(context, userPoolId, clientId, clientSecret, cipClient);
+
+
+
+
+        // Add the user attributes. Attributes are added as key-value pairs
+        // Adding user's given name.
+        // Note that the key is "given_name" which is the OIDC claim for given name
+        //userAttributes.addAttribute("given_name", userGivenName);
+
+        // Adding user's phone number
+        //userAttributes.addAttribute("phone_number", phoneNumber);
+        // Adding user's email address
+        Log.d("email", email);
+
+        if (!(password.equals(confirm))) {
+
+            Toast notequals = Toast.makeText(getApplicationContext(), getString(R.string.contraNoIgual), Toast.LENGTH_SHORT);
+            notequals.show();
+
+        } else {
+            if (password == null || password.matches("")) {
+                TextView passview = (TextView) findViewById(R.id.textViewUserRegPasswordMessage);
+                String passHint = editpass.getHint().toString();
+                passview.setText(passHint + " cannot be empty");
+                //password.setBackground(getDrawable(R.drawable.text_border_error));
+                return;
+            }
+
+            if (email == null || email.matches("")) {
+                TextView userview = (TextView) findViewById(R.id.textViewRegUserIdMessage);
+                userview.setText(emailText.getHint() + " cannot be empty");
+                //emailText.setBackground(getDrawable(R.drawable.text_border_error));
+                return;
+            } else {
+                userAttributes.addAttribute("email", email);
+            }
+
+
+            if (name != null) {
+                if (name.length() > 0) {
+                    userAttributes.addAttribute("name", name);
+                }
+            }
+
+
+
+            showWaitDialog("Signing up...");
+
+            SignUpHandler signupCallback = new SignUpHandler() {
+
+                @Override
+                public void onSuccess(CognitoUser cognitoUser, boolean userConfirmed, CognitoUserCodeDeliveryDetails cognitoUserCodeDeliveryDetails) {
+                    // Sign-up was successful
+                    /* try {
+                        Log.d("user", cognitoUser.getUserId());
+                    } catch (Exception e) {
+                        Log.d("Exx", e.toString());
+                    } */
+
+                    closeWaitDialog();
+
+                    Log.d("user", cognitoUser.toString());
+                    Log.d("userid", cognitoUser.getUserId());
+
+                    if (userConfirmed) {
+                        // User is already confirmed
+                        showDialogMessage("Sign up successful!" , email + " has been Confirmed", true);
+                    }
+                    else {
+                        // User is not confirmed
+
+
+                        // Check if this user (cognitoUser) needs to be confirmed
+                        // This user must be confirmed and a confirmation code was sent to the user
+                        // cognitoUserCodeDeliveryDetails will indicate where the confirmation code was sent
+                        // Get the confirmation code from user
+
+                        String medium = cognitoUserCodeDeliveryDetails.getDeliveryMedium();
+                        Log.d("medium", medium);
+                        String attribute = cognitoUserCodeDeliveryDetails.getAttributeName();
+                        Log.d("attributename", attribute);
+                        String destination = cognitoUserCodeDeliveryDetails.getDestination();
+                        Log.d("destination", destination);
+
+
+                        if (attribute.equals("email")) {
+                            Toast.makeText(getApplicationContext(), "Se ha enviado un correo de confirmación a " + email, Toast.LENGTH_LONG).show();
+                        }
+
+                        SharedPreferences preferences = getApplicationContext().getSharedPreferences("Dagus", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = preferences.edit();
+                        //editor.putString("token", token);
+                        editor.putString("name", name);
+                        editor.apply();
+
+                        Log.d("userPool", userPool.toString());
+
+                        confirmSignUp(cognitoUserCodeDeliveryDetails);
+
+
+                        /*Intent intent = new Intent(RegisterActivity.this, ConfirmCode.class);
+                        intent.putExtra("email", email);
+                        startActivity(intent); */
+                    }
+
+
+                }
+
+                @Override
+                public void onFailure(Exception exception) {
+                    // Sign-up failed, check exception for the cause
+                    Log.d("exception", exception.toString());
+                    closeWaitDialog();
+                    TextView label = (TextView) findViewById(R.id.textViewRegUserIdMessage);
+                    label.setText("Sign up failed");
+                    //emailText.setBackground(getDrawable(R.drawable.text_border_error));
+                    showDialogMessage("Sign up failed", formatException(exception),false);
+                }
+            };
+
+
+            userPool.signUpInBackground(email, password, userAttributes, null, signupCallback);
+            //userPool.signUp(email, password, userAttributes, null, signupCallback);
+
+
+
+
+            //Log.d("user" , cognitoUser.toString() + "papu pro");
+
+
+            CognitoUser cognitoUser2 = userPool.getCurrentUser();
+            //Log.d("userpro", cognitoUser2.getUserId().toString());
+
+
+
+        }
+
+    }
+
+    public void confirm (View v) {
+
+        //Log.d("user" , cognitoUser.getUserId() + " userpro");
+
+        Intent intent = new Intent(RegisterActivity.this, ConfirmCode.class);
+        intent.putExtra("email", email);
+        startActivity(intent);
+    }
+
+    public static CognitoUserPool getPool() {
+        return userPool;
+    }
+
+
+    private void confirmSignUp(CognitoUserCodeDeliveryDetails cognitoUserCodeDeliveryDetails) {
+        Intent intent = new Intent(this, ConfirmCode.class);
+        intent.putExtra("source", "signup");
+        intent.putExtra("name", name);
+        intent.putExtra("destination", cognitoUserCodeDeliveryDetails.getDestination());
+        intent.putExtra("deliveryMed", cognitoUserCodeDeliveryDetails.getDeliveryMedium());
+        intent.putExtra("attribute", cognitoUserCodeDeliveryDetails.getAttributeName());
+        intent.putExtra("email", email);
+        intent.putExtra("password" , password);
+        startActivityForResult(intent, 10);
+
+    }
+
+    private void showDialogMessage(String title, String body, final boolean exit) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title).setMessage(body).setNeutralButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                try {
+                    userDialog.dismiss();
+                    if(exit) {
+                        //exit(email);
+                    }
+                } catch (Exception e) {
+                    if(exit) {
+                        //exit(email);
+                    }
+                }
+            }
+        });
+        userDialog = builder.create();
+        userDialog.show();
+    }
+
+    private void showWaitDialog(String message) {
+        closeWaitDialog();
+        waitDialog = new ProgressDialog(this);
+        waitDialog.setTitle(message);
+        waitDialog.show();
+    }
+
+    private void closeWaitDialog() {
+        try {
+            waitDialog.dismiss();
+        }
+        catch (Exception e) {
+            //
+        }
+    }
+
+    public static String formatException(Exception exception) {
+        String formattedString = "Internal Error";
+        Log.e("App Error",exception.toString());
+        Log.getStackTraceString(exception);
+
+        String temp = exception.getMessage();
+
+        if(temp != null && temp.length() > 0) {
+            formattedString = temp.split("\\(")[0];
+            if(temp != null && temp.length() > 0) {
+                return formattedString;
+            }
+        }
+
+        return  formattedString;
     }
 
 }

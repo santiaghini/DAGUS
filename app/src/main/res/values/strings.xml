@@ -29,6 +29,9 @@
     <string name="yaexiste">Un usuario con ese correo ya existe</string>
     <string name="credits">CREDITS</string>
     <string name="help">¿Qué puedes buscar?</string>
+    <string name="registroexitoso">¡Registro Exitoso!</string>
+    <string name="registrofallo">Algo salió mal... tu registro falló</string>
+    <string name="code">Código</string>
 
 
     <string-array name="materias_array">
